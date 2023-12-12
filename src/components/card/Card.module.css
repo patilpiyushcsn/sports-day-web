@@ -26,8 +26,8 @@
   margin-left: auto;
 }
 
-.button {
-  background-color: palegreen;
+.buttonContainer button {
+  background-color: green;
   padding: 5px 10px;
   border-radius: 5px;
   cursor: pointer;

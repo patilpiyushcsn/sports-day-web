@@ -5,10 +5,16 @@ import moment from "moment";
 interface CustomEvent {
   sportEvent: Event;
   onClick: (sportEvent: Event) => void;
+  isRegister?: boolean;
 }
 
-export const Card = ({ sportEvent, onClick }: CustomEvent) => {
+export const Card = ({
+  sportEvent,
+  onClick,
+  isRegister = false,
+}: CustomEvent) => {
   const { event_category, event_name, start_time, end_time } = sportEvent;
+
   return (
     <div className={styles.cardContainer}>
       <div className={styles.vertical}>
@@ -21,9 +27,7 @@ export const Card = ({ sportEvent, onClick }: CustomEvent) => {
           "LT"
         )}`}</div>
         <div className={styles.buttonContainer}>
-          <button className={styles.button} onClick={() => onClick(sportEvent)}>
-            SELECT
-          </button>
+          <button onClick={() => onClick(sportEvent)}>{isRegister ? 'REMOVE' : 'SELECT'}</button>
         </div>
       </div>
     </div>

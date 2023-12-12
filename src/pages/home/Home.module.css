@@ -1,8 +1,6 @@
 .title {
-  border-bottom: 2px solid black;
   padding-bottom: 10px;
   margin-bottom: 10px;
-  width: 120px;
   text-align: center;
   margin: auto;
 }
@@ -18,4 +16,13 @@
 .cardsContainer::after {
   content: "";
   flex: auto;
+}
+
+.tabs {
+  display: flex;
+  flex-direction: row;
+}
+
+.selected {
+  border-bottom: 2px solid black;
 }
