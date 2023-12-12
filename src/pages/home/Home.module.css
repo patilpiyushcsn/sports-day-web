@@ -1,0 +1,21 @@
+.title {
+  border-bottom: 2px solid black;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  width: 120px;
+  text-align: center;
+  margin: auto;
+}
+
+.cardsContainer {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.cardsContainer::after {
+  content: "";
+  flex: auto;
+}

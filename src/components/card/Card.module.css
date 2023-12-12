@@ -1,0 +1,38 @@
+.cardContainer {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 50px;
+  border: 2px solid cadetblue;
+  border-radius: 25px;
+  width: 250px;
+  background-color: lightblue;
+  padding: 20px 0;
+}
+
+.vertical {
+  border-right: 2px solid black;
+  margin-left: 10px;
+  padding-right: 10px;
+}
+
+.eventDetails {
+  display: flex;
+  flex-direction: column;
+  margin: 0 10px;
+}
+
+.buttonContainer {
+  padding: 5px;
+  margin-left: auto;
+}
+
+.button {
+  background-color: palegreen;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.eventName {
+  font-weight: bold; 
+}
