@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import styles from "./SignUp.module.css";
 import { useMutation } from "@tanstack/react-query";
-import { User, UsersService } from "../../services/users.service";
+import { UsersService } from "../../services/users.service";
 import { useEffect, useState } from "react";
 
 export const SignUp = () => {
@@ -10,16 +10,6 @@ export const SignUp = () => {
   const [lastName, setLastName] = useState("");
 
   const navigate = useNavigate();
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handlSubmitButtonClick = () => {
-    const user: User = {
-      username,
-      firstName,
-      lastName,
-    };
-    createUserMutate(user);
-  };
 
   // Create User Mutation
   const {
@@ -30,10 +20,9 @@ export const SignUp = () => {
     mutationFn: UsersService.createUser,
   });
 
-  // Similar to componentDidMount and componentDidUpdate:
   useEffect(() => {
     if (isSuccess) {
-      navigate("/");
+      navigate("/login");
     }
   }, [status]);
 
@@ -42,7 +31,6 @@ export const SignUp = () => {
       <div className={styles.wrapper}>
         <h1>Sign Up</h1>
         <div>
-          {/* <label htmlFor="userId">User Id: </label> */}
           <input
             type="text"
             name="userName"
@@ -76,7 +64,13 @@ export const SignUp = () => {
         <button
           className={styles.submitButton}
           type="submit"
-          onClick={handlSubmitButtonClick}
+          onClick={() => {
+            createUserMutate({
+              username,
+              firstName,
+              lastName,
+            });
+          }}
         >
           Submit
         </button>

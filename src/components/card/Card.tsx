@@ -2,7 +2,7 @@ import { Event } from "../../services/events.service";
 import styles from "./Card.module.css";
 import moment from "moment";
 
-interface CustomEvent {
+interface CardEvent {
   sportEvent: Event;
   onClick: (sportEvent: Event) => void;
   isRegistered?: boolean;
@@ -12,7 +12,7 @@ export const Card = ({
   sportEvent,
   onClick,
   isRegistered = false,
-}: CustomEvent) => {
+}: CardEvent) => {
   const { event_category, event_name, start_time, end_time } = sportEvent;
 
   return (

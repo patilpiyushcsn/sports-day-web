@@ -4,20 +4,15 @@ import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { UsersService } from "../../services/users.service";
 import { userStore } from "../../store/user-store";
-// import { userStore } from "../../store/user-store";
 
 export const Login = () => {
   const [username, setUserId] = useState<string>("");
+  
   const { setId } = userStore();
 
   const navigate = useNavigate();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleUserIdChange = (event: any) => {
-    setUserId(event.target.value);
-  };
-
-  // Create User Mutation
+  // Login Mutation
   const {
     mutate: loginMutate,
     isSuccess,
@@ -27,44 +22,34 @@ export const Login = () => {
     mutationFn: UsersService.login,
   });
 
-  // Similar to componentDidMount and componentDidUpdate:
   useEffect(() => {
     if (isSuccess) {
       const userId = data._id;
-      setId(userId ?? '');
+      setId(userId ?? "");
       navigate("/home");
     }
   }, [status]);
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handlSubmitButtonClick = () => {
-    loginMutate(username);
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleSignUp = () => {
-    // Redirect to SignUp page
-    navigate("/sign-up");
-  };
 
   return (
     <div className={styles.loginContainer}>
       <div className={styles.wrapper}>
         <h1>Login</h1>
-        <div>
-          <input
-            type="text"
-            name="userId"
-            id="userId"
-            placeholder="Enter Username"
-            value={username}
-            onChange={handleUserIdChange}
-          />
-        </div>
+        <input
+          type="text"
+          name="userId"
+          id="userId"
+          placeholder="Enter Username"
+          value={username}
+          onChange={(e) => {
+            setUserId(e.target.value);
+          }}
+        />
         <button
           type="submit"
           className={styles.submitButton}
-          onClick={handlSubmitButtonClick}
+          onClick={() => {
+            loginMutate(username);
+          }}
         >
           Submit
         </button>
@@ -73,7 +58,9 @@ export const Login = () => {
           <button
             type="submit"
             className={styles.signUpButton}
-            onClick={handleSignUp}
+            onClick={() => {
+              navigate("/sign-up");
+            }}
           >
             Sign Up
           </button>

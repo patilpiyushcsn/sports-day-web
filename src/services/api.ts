@@ -10,9 +10,3 @@ export const apiInstance = axios.create({
     "Content-Type": "application/json",
   },
 });
-
-export interface CustomResponse {
-  statusCode: number;
-  success: boolean;
-  body: any;
-}

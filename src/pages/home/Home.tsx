@@ -5,7 +5,6 @@ import { RegisterEvent, UsersService } from "../../services/users.service";
 import styles from "./Home.module.css";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast, { Toaster } from "react-hot-toast";
-import { AxiosError } from "axios";
 import { userStore } from "../../store/user-store";
 import { useNavigate } from "react-router-dom";
 
@@ -17,91 +16,75 @@ export const Home = () => {
   const navigate = useNavigate();
 
   if (!userId) {
-    navigate("/");
+    useEffect(() => {
+      navigate("/login");
+    });
   }
 
   // Get All Events
   const {
-    data: allEventsData,
-    isSuccess: allEventsSuccess,
-    status: allEventsSatus,
+    data: getAllEventsData,
+    isSuccess: getAllEventsSuccess,
+    status: getAllEventsSatus,
   } = useQuery<Event[], Error>({
-    queryKey: ["allEvents"],
+    queryKey: ["getAllEvents"],
     queryFn: EventsService.getAllEvents,
   });
 
-  // Get Selected Events
+  useEffect(() => {
+    if (getAllEventsSuccess) {
+      setAllEvents(getAllEventsData);
+    }
+  }, [getAllEventsSatus]);
+
+  // Get Registered Events
   const {
-    data: selectedEventsData,
-    isSuccess: selectedEventsSuccess,
-    status: selectedEventsSatus,
+    data: getRegisteredEventsData,
+    isSuccess: getRegisteredEventsSuccess,
+    status: getRegisteredEventsSatus,
   } = useQuery<Event[], Error>({
-    queryKey: ["registeredEvents"],
+    queryKey: ["getRegisteredEvents"],
     queryFn: () => UsersService.getRegisteredEvents(userId),
   });
 
   useEffect(() => {
-    if (allEventsSuccess) {
-      setAllEvents(allEventsData);
+    if (getRegisteredEventsSuccess) {
+      setRegisteredEvents(getRegisteredEventsData);
     }
-  }, [allEventsSatus]);
-
-  useEffect(() => {
-    if (selectedEventsSuccess) {
-      setRegisteredEvents(selectedEventsData);
-    }
-  }, [selectedEventsSatus]);
+  }, [getRegisteredEventsSatus]);
 
   // Register Event Mutation
-  const {
-    mutate: registerEventMutate,
-    status: selectEventDataStatus,
-    error: selectEventError,
-    isError: selectEventIsError,
-  } = useMutation({
+  const { mutate: registerEventMutate } = useMutation({
     mutationFn: UsersService.registerEvent,
     onSuccess: () => {
-      queryClient.resetQueries({ queryKey: ["registeredEvents"], exact: true });
+      queryClient.resetQueries({ queryKey: ["getRegisteredEvents"], exact: true });
     },
   });
-
-  useEffect(() => {
-    const eventError = selectEventError as AxiosError;
-    if (selectEventIsError) {
-      notify(eventError.response?.data?.body);
-    }
-  }, [selectEventDataStatus]);
 
   // UnRegister Event Mutation
   const {
     mutate: unRegisterEventMutate,
-    isSuccess: unRegisterEventSuccess,
-    status: unRegisterEventStatus,
-    data: unRegisterEventData,
   } = useMutation({
     mutationFn: UsersService.unRegisterEvent,
     onSuccess: () => {
-      queryClient.resetQueries({ queryKey: ["registeredEvents"], exact: true });
+      queryClient.resetQueries({ queryKey: ["getRegisteredEvents"], exact: true });
     },
   });
 
-  useEffect(() => {
-    if (unRegisterEventSuccess) {
-      setRegisteredEvents(unRegisterEventData.events ?? []);
-    }
-  }, [unRegisterEventStatus]);
-
-  const hasConflict = (existingEvents: Event[], newEvent: Event) => {
-    for (const event of existingEvents) {
+  const hasConflict = (
+    registeredEvents: Event[],
+    unRegisteredEvent: Event
+  ): boolean => {
+    for (const registeredEvent of registeredEvents) {
       if (
-        event.start_time < newEvent.end_time &&
-        event.end_time > newEvent.start_time
+        registeredEvent.start_time < unRegisteredEvent.end_time &&
+        registeredEvent.end_time > unRegisteredEvent.start_time
       ) {
-        if (event.event_name === newEvent.event_name) {
-          notify("Same event cannot be registered by the user twice");
+        if (registeredEvent.event_name === unRegisteredEvent.event_name) {
+          broadcastToast(`Same event cannot be registered by the user twice`);
         } else {
-          notify(
-            `Conflict between ${event.event_name} and ${newEvent.event_name}`
+          broadcastToast(
+            `Conflict between ${registeredEvent.event_name} and ${unRegisteredEvent.event_name}`
           );
         }
         return true;
@@ -113,7 +96,9 @@ export const Home = () => {
   const handleOnSelect = (sportEvent: Event) => {
     if (userId) {
       if (registeredEvents.length >= 3) {
-        notify("Maximum 3 events can be registered");
+        if (!hasConflict(registeredEvents, sportEvent)) {
+          broadcastToast(`Maximum 3 events can be registered`);
+        }
       } else {
         if (!hasConflict(registeredEvents, sportEvent)) {
           const registerEvent: RegisterEvent = {
@@ -125,7 +110,7 @@ export const Home = () => {
         }
       }
     } else {
-      navigate("/");
+      navigate("/login");
     }
   };
 
@@ -137,15 +122,11 @@ export const Home = () => {
       };
       unRegisterEventMutate(registerEvent);
     } else {
-      navigate("/");
+      navigate("/login");
     }
   };
 
-  const notify = (msg: string) => toast.error(msg);
-
-  if (!allEvents) {
-    return null;
-  }
+  const broadcastToast = (message: string) => toast.error(message);
 
   return allEvents.length === 0 ? (
     <div className={styles.loader}>Loading...</div>

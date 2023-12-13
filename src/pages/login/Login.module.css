@@ -11,7 +11,7 @@
   flex-direction: column;
 }
 
-h1 {
+.wrapper h1 {
   text-align: center;
 }
 
@@ -25,7 +25,7 @@ h1 {
   font-family: sans-serif;
 }
 
-input[type="text"] {
+.wrapper input[type="text"] {
   width: 100%;
   padding: 12px 20px;
   margin: 8px 0;
@@ -52,7 +52,7 @@ input[type="text"] {
   width: 40%;
 }
 
-/* Example media queries */
+/* Media queries */
 @media (max-width: 600px) {
   /* Styles for small screens (e.g., mobile) */
   .wrapper {

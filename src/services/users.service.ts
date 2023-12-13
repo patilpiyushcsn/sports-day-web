@@ -1,4 +1,4 @@
-import { CustomResponse, apiInstance } from "./api";
+import { apiInstance } from "./api";
 import { Event } from "./events.service";
 
 export interface User {
@@ -28,7 +28,7 @@ export class UsersService {
 
   static registerEvent = async (
     registerEvent: RegisterEvent
-  ): Promise<CustomResponse> => {
+  ): Promise<User> => {
     const { data } = await apiInstance.put(
       `/users/${registerEvent.userId}/events/${registerEvent.eventId}/register`,
       { event: registerEvent.event }
