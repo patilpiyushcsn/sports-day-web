@@ -3,11 +3,12 @@ import styles from "./Login.module.css";
 import { useNavigate } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { UsersService } from "../../services/users.service";
+import { userStore } from "../../store/user-store";
 // import { userStore } from "../../store/user-store";
 
 export const Login = () => {
   const [username, setUserId] = useState<string>("");
-  // const { id, setId } = userStore();
+  const { setId } = userStore();
 
   const navigate = useNavigate();
 
@@ -17,14 +18,21 @@ export const Login = () => {
   };
 
   // Create User Mutation
-  const { mutate: loginMutate, isSuccess, status } = useMutation({
+  const {
+    mutate: loginMutate,
+    isSuccess,
+    status,
+    data,
+  } = useMutation({
     mutationFn: UsersService.login,
   });
 
   // Similar to componentDidMount and componentDidUpdate:
   useEffect(() => {
-    if(isSuccess){
-      navigate('/home');
+    if (isSuccess) {
+      const userId = data._id;
+      setId(userId ?? '');
+      navigate("/home");
     }
   }, [status]);
 

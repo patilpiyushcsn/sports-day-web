@@ -3,8 +3,11 @@ import { Card } from "../../components/card/Card";
 import { Event, EventsService } from "../../services/events.service";
 import { RegisterEvent, UsersService } from "../../services/users.service";
 import styles from "./Home.module.css";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast, { Toaster } from "react-hot-toast";
+import { AxiosError } from "axios";
+import { userStore } from "../../store/user-store";
+import { useNavigate } from "react-router-dom";
 
 enum ActiveTab {
   AllEvents,
@@ -12,8 +15,11 @@ enum ActiveTab {
 }
 
 export const Home = () => {
+  const queryClient = useQueryClient();
   const [activeEvents, setAllEvents] = useState(ActiveTab.AllEvents);
   const [cardData, setCardData] = useState<Event[]>([]);
+  const { userId } = userStore();
+  const navigate = useNavigate();
 
   // Get All Events
   const {
@@ -41,12 +47,14 @@ export const Home = () => {
   useEffect(() => {
     if (allEventsSuccess && activeEvents === ActiveTab.AllEvents) {
       setCardData(allEventsData);
+      // queryClient.resetQueries({ queryKey: ["allEvents"], exact: true });
     }
   }, [allEventsSatus, activeEvents]);
 
   useEffect(() => {
     if (selectedEventsSuccess && activeEvents === ActiveTab.SelectedEvents) {
       setCardData(selectedEventsData);
+      // queryClient.resetQueries({ queryKey: ["registeredEvents"], exact: true });
     }
   }, [selectedEventsSatus, activeEvents]);
 
@@ -60,13 +68,16 @@ export const Home = () => {
     isError: selectEventIsError,
   } = useMutation({
     mutationFn: UsersService.registerEvent,
+    onSuccess: () => {
+      // Invalidate and refetch
+      queryClient.resetQueries({ queryKey: ["registeredEvents"], exact: true });
+    },
   });
 
   useEffect(() => {
-    console.log(selectEventData);
-    console.log(selectEventData);
+    const eventError = selectEventError as AxiosError;
     if (selectEventIsError) {
-      notify();
+      notify(eventError.response?.data?.body);
     }
   }, [selectEventDataStatus]);
 
@@ -78,6 +89,10 @@ export const Home = () => {
     data: unRegisterEventData,
   } = useMutation({
     mutationFn: UsersService.unRegisterEvent,
+    onSuccess: () => {
+      // Invalidate and refetch
+      queryClient.resetQueries({ queryKey: ["registeredEvents"], exact: true });
+    },
   });
 
   useEffect(() => {
@@ -87,19 +102,23 @@ export const Home = () => {
   }, [unRegisterEventStatus]);
 
   const handleOnSelect = (sportEvent: Event) => {
-    if (activeEvents === ActiveTab.AllEvents) {
-      const registerEvent: RegisterEvent = {
-        userId: "65782d456c55fc2cdab3ce6f",
-        eventId: sportEvent?.id.toString(),
-        event: sportEvent,
-      };
-      registerEventMutate(registerEvent);
+    if (userId) {
+      if (activeEvents === ActiveTab.AllEvents) {
+        const registerEvent: RegisterEvent = {
+          userId: userId,
+          eventId: sportEvent?.id.toString(),
+          event: sportEvent,
+        };
+        registerEventMutate(registerEvent);
+      } else {
+        const registerEvent: RegisterEvent = {
+          userId: userId,
+          eventId: sportEvent?.id.toString(),
+        };
+        unRegisterEventMutate(registerEvent);
+      }
     } else {
-      const registerEvent: RegisterEvent = {
-        userId: "65782d456c55fc2cdab3ce6f",
-        eventId: sportEvent?.id.toString(),
-      };
-      unRegisterEventMutate(registerEvent);
+      navigate("/");
     }
   };
 
@@ -114,7 +133,7 @@ export const Home = () => {
     selectedEventsRefetch();
   };
 
-  const notify = () => toast("Wow so easy!");
+  const notify = (msg: string) => toast.error(msg);
 
   return (
     <div className={styles.container}>
@@ -150,7 +169,18 @@ export const Home = () => {
           />
         ))}
       </div>
-      <Toaster position="bottom-center" reverseOrder={false} />
+      <Toaster
+        position="top-right"
+        reverseOrder={false}
+        toastOptions={{
+          error: {
+            style: {
+              background: "red",
+              color: "white",
+            },
+          },
+        }}
+      />
     </div>
   );
 };

@@ -20,8 +20,10 @@ export class UsersService {
     await apiInstance.post("/users", user);
   };
 
-  static login = async (username: string) => {
-    await apiInstance.post("/users/login", { username });
+  static login = async (username: string): Promise<User> => {
+    const { data } = await apiInstance.post("/users/login", { username });
+
+    return data.body as User;
   };
 
   static registerEvent = async (
