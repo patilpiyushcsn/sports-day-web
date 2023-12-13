@@ -1,18 +1,24 @@
 .cardContainer {
   display: flex;
   flex-direction: row;
-  margin-bottom: 50px;
+  /* margin-bottom: 50px; */
   border: 2px solid cadetblue;
   border-radius: 25px;
-  width: 250px;
+  /* width: calc(40% - 40px); */
   background-color: lightblue;
   padding: 20px 0;
 }
 
+.cardContainer:hover {
+  background-color: lightgray;
+}
+
 .vertical {
+  display: flex;
   border-right: 2px solid black;
   margin-left: 10px;
   padding-right: 10px;
+  align-items: center;
 }
 
 .eventDetails {
@@ -27,12 +33,26 @@
 }
 
 .buttonContainer button {
-  background-color: green;
-  padding: 5px 10px;
+  padding: 10px 15px;
   border-radius: 5px;
   cursor: pointer;
 }
 
 .eventName {
-  font-weight: bold; 
+  font-weight: bold;
+}
+
+.bgcGreen {
+  background-color: palegreen;
+  border-color: green;
+}
+
+.bgcGreen:hover{
+  background-color: white;
+}
+
+.bgcRed {
+  font-weight: bold;
+  background-color:pink;
+  border-color: brown;
 }

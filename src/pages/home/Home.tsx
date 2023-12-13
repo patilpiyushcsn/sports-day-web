@@ -9,22 +9,20 @@ import { AxiosError } from "axios";
 import { userStore } from "../../store/user-store";
 import { useNavigate } from "react-router-dom";
 
-enum ActiveTab {
-  AllEvents,
-  SelectedEvents,
-}
-
 export const Home = () => {
   const queryClient = useQueryClient();
-  const [activeEvents, setAllEvents] = useState(ActiveTab.AllEvents);
-  const [cardData, setCardData] = useState<Event[]>([]);
+  const [allEvents, setAllEvents] = useState<Event[]>([]);
+  const [registeredEvents, setRegisteredEvents] = useState<Event[]>([]);
   const { userId } = userStore();
   const navigate = useNavigate();
+
+  if (!userId) {
+    navigate("/");
+  }
 
   // Get All Events
   const {
     data: allEventsData,
-    refetch: allEventsRefetch,
     isSuccess: allEventsSuccess,
     status: allEventsSatus,
   } = useQuery<Event[], Error>({
@@ -35,41 +33,34 @@ export const Home = () => {
   // Get Selected Events
   const {
     data: selectedEventsData,
-    refetch: selectedEventsRefetch,
     isSuccess: selectedEventsSuccess,
     status: selectedEventsSatus,
   } = useQuery<Event[], Error>({
-    enabled: false,
     queryKey: ["registeredEvents"],
-    queryFn: () => UsersService.getRegisteredEvents("65782d456c55fc2cdab3ce6f"),
+    queryFn: () => UsersService.getRegisteredEvents(userId),
   });
 
   useEffect(() => {
-    if (allEventsSuccess && activeEvents === ActiveTab.AllEvents) {
-      setCardData(allEventsData);
-      // queryClient.resetQueries({ queryKey: ["allEvents"], exact: true });
+    if (allEventsSuccess) {
+      setAllEvents(allEventsData);
     }
-  }, [allEventsSatus, activeEvents]);
+  }, [allEventsSatus]);
 
   useEffect(() => {
-    if (selectedEventsSuccess && activeEvents === ActiveTab.SelectedEvents) {
-      setCardData(selectedEventsData);
-      // queryClient.resetQueries({ queryKey: ["registeredEvents"], exact: true });
+    if (selectedEventsSuccess) {
+      setRegisteredEvents(selectedEventsData);
     }
-  }, [selectedEventsSatus, activeEvents]);
+  }, [selectedEventsSatus]);
 
   // Register Event Mutation
   const {
     mutate: registerEventMutate,
-    data: selectEventData,
-    isSuccess: selectEventDataIsSuccess,
     status: selectEventDataStatus,
     error: selectEventError,
     isError: selectEventIsError,
   } = useMutation({
     mutationFn: UsersService.registerEvent,
     onSuccess: () => {
-      // Invalidate and refetch
       queryClient.resetQueries({ queryKey: ["registeredEvents"], exact: true });
     },
   });
@@ -90,97 +81,118 @@ export const Home = () => {
   } = useMutation({
     mutationFn: UsersService.unRegisterEvent,
     onSuccess: () => {
-      // Invalidate and refetch
       queryClient.resetQueries({ queryKey: ["registeredEvents"], exact: true });
     },
   });
 
   useEffect(() => {
     if (unRegisterEventSuccess) {
-      setCardData(unRegisterEventData.events ?? []);
+      setRegisteredEvents(unRegisterEventData.events ?? []);
     }
   }, [unRegisterEventStatus]);
 
+  const hasConflict = (existingEvents: Event[], newEvent: Event) => {
+    for (const event of existingEvents) {
+      if (
+        event.start_time < newEvent.end_time &&
+        event.end_time > newEvent.start_time
+      ) {
+        if (event.event_name === newEvent.event_name) {
+          notify("Same event cannot be registered by the user twice");
+        } else {
+          notify(
+            `Conflict between ${event.event_name} and ${newEvent.event_name}`
+          );
+        }
+        return true;
+      }
+    }
+    return false;
+  };
+
   const handleOnSelect = (sportEvent: Event) => {
     if (userId) {
-      if (activeEvents === ActiveTab.AllEvents) {
-        const registerEvent: RegisterEvent = {
-          userId: userId,
-          eventId: sportEvent?.id.toString(),
-          event: sportEvent,
-        };
-        registerEventMutate(registerEvent);
+      if (registeredEvents.length >= 3) {
+        notify("Maximum 3 events can be registered");
       } else {
-        const registerEvent: RegisterEvent = {
-          userId: userId,
-          eventId: sportEvent?.id.toString(),
-        };
-        unRegisterEventMutate(registerEvent);
+        if (!hasConflict(registeredEvents, sportEvent)) {
+          const registerEvent: RegisterEvent = {
+            userId: userId,
+            eventId: sportEvent?.id.toString(),
+            event: sportEvent,
+          };
+          registerEventMutate(registerEvent);
+        }
       }
     } else {
       navigate("/");
     }
   };
 
-  const activeEventsClass = `${styles.title} ${styles.selected}`;
-
-  const handleAllEventsClick = () => {
-    setAllEvents(ActiveTab.AllEvents);
-    allEventsRefetch();
-  };
-  const handleSelectedEventsClick = () => {
-    setAllEvents(ActiveTab.SelectedEvents);
-    selectedEventsRefetch();
+  const handleOnRemove = (sportEvent: Event) => {
+    if (userId) {
+      const registerEvent: RegisterEvent = {
+        userId: userId,
+        eventId: sportEvent?.id.toString(),
+      };
+      unRegisterEventMutate(registerEvent);
+    } else {
+      navigate("/");
+    }
   };
 
   const notify = (msg: string) => toast.error(msg);
 
-  return (
-    <div className={styles.container}>
-      <div className={styles.tabs}>
-        <div
-          className={
-            activeEvents === ActiveTab.AllEvents
-              ? activeEventsClass
-              : styles.title
-          }
-          onClick={handleAllEventsClick}
-        >
-          All Events
+  if (!allEvents) {
+    return null;
+  }
+
+  return allEvents.length === 0 ? (
+    <div className={styles.loader}>Loading...</div>
+  ) : (
+    <>
+      <h1>Sports Day</h1>
+      <div className={styles.sportsDayEventsContainer}>
+        <div className={styles.eventsContainer}>
+          <div className={styles.title}>All Events</div>
+          <div className={styles.eventCardsContainer}>
+            {allEvents?.map((sportEvent) => (
+              <Card
+                key={sportEvent.id}
+                sportEvent={sportEvent}
+                onClick={handleOnSelect}
+                isRegistered={false}
+              />
+            ))}
+          </div>
         </div>
-        <div
-          className={
-            activeEvents === ActiveTab.SelectedEvents
-              ? activeEventsClass
-              : styles.title
-          }
-          onClick={handleSelectedEventsClick}
-        >
-          Selected Events
+        <div className={styles.eventsContainer}>
+          <div className={styles.title}>Selected Events</div>
+          <div className={styles.eventCardsContainer}>
+            {registeredEvents?.map((sportEvent) => (
+              <Card
+                key={sportEvent.id}
+                sportEvent={sportEvent}
+                onClick={handleOnRemove}
+                isRegistered={true}
+              />
+            ))}
+          </div>
         </div>
-      </div>
-      <div className={styles.cardsContainer}>
-        {cardData?.map((sportEvent) => (
-          <Card
-            key={sportEvent.id}
-            sportEvent={sportEvent}
-            onClick={handleOnSelect}
-            isRegister={activeEvents === ActiveTab.SelectedEvents}
-          />
-        ))}
-      </div>
-      <Toaster
-        position="top-right"
-        reverseOrder={false}
-        toastOptions={{
-          error: {
-            style: {
-              background: "red",
-              color: "white",
+
+        <Toaster
+          position="top-center"
+          reverseOrder={false}
+          toastOptions={{
+            error: {
+              style: {
+                background: "red",
+                color: "white",
+              },
             },
-          },
-        }}
-      />
-    </div>
+          }}
+        />
+      </div>
+    </>
   );
 };

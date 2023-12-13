@@ -1,21 +1,31 @@
+.sportsDayEventsContainer {
+  display: flex;
+  gap: 20px;
+  border: 1px solid black;
+  padding: 10px;
+  /* flex-direction: row; */
+}
+
+.eventsContainer {
+  border: 1px solid black;
+  flex: 1;
+}
+
+.eventCardsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+}
+
 .title {
   padding-bottom: 10px;
   margin-bottom: 10px;
   text-align: center;
-  margin: auto;
-}
-
-.cardsContainer {
-  margin-top: 20px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  gap: 10px;
-}
-
-.cardsContainer::after {
-  content: "";
-  flex: auto;
+  margin: 20px auto;
+  width: fit-content;
+  border-bottom: 2px solid black;
 }
 
 .tabs {
@@ -25,4 +35,19 @@
 
 .selected {
   border-bottom: 2px solid black;
+}
+
+.loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 20px);
+}
+
+/* Example media queries */
+@media (max-width: 600px) {
+  /* Styles for small screens (e.g., mobile) */
+  .sportsDayEventsContainer {
+    flex-direction: column;
+  }
 }
