@@ -22,7 +22,7 @@ export const SignUp = () => {
 
   useEffect(() => {
     if (isSuccess) {
-      navigate("/login");
+      navigate("/");
     }
   }, [status]);
 

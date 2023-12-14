@@ -17,7 +17,7 @@ export const Home = () => {
 
   if (!userId) {
     useEffect(() => {
-      navigate("/login");
+      navigate("/");
     });
   }
 
@@ -110,7 +110,7 @@ export const Home = () => {
         }
       }
     } else {
-      navigate("/login");
+      navigate("/");
     }
   };
 
@@ -122,7 +122,7 @@ export const Home = () => {
       };
       unRegisterEventMutate(registerEvent);
     } else {
-      navigate("/login");
+      navigate("/");
     }
   };
 

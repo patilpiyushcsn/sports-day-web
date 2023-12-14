@@ -7,7 +7,7 @@ export const RootRoute = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Login />} />
         <Route path="/home" element={<Home />} />
         <Route path="/sign-up" element={<SignUp />} />
       </Routes>
